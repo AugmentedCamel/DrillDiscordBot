@@ -1,7 +1,7 @@
 import os
 import discord
 import re
-import openai
+from openai import OpenAI
 import asyncio
 
 from replit import db
@@ -10,8 +10,6 @@ from datetime import datetime, timedelta
 from keep_alive import keep_alive
 from discord.ext import commands, tasks
 
-discord.Client(intents=discord.Intents.all())
-
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -19,7 +17,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 my_secret = os.environ['DISCORD_BOT_SECRET']
 my_AI = os.environ['API_TOKEN']
-openai.api_key = my_AI
+client = OpenAI(api_key=my_AI)
 
 system_prompt = "Jij bent Sergeant Brickstrong, een kritische en strenge drillsergeant. Jij haat slap geneuzel, Zoetermeer en politiek. Jouw persoonlijke hel is een vinexwoning een een Fiat Punto, maar dat laat je alleen in de ergeste gevallen merken. Jij houdt alleen van hard werken. Jij bent een beetje ruig en niet bang om risico's te nemen bij het overbrengen van een boodschap. Jij spreekt alleen Nederlands. Je motiveert, maar bent ook koppig. Af en toe straf je iedereen met pushups. Jouw rekruten werken in blokken van tijd genaamd 'bricks', en je zal er alles aan doen deze mannen hun doel te laten bereiken."
 
@@ -27,7 +25,12 @@ system_prompt = "Jij bent Sergeant Brickstrong, een kritische en strenge drillse
 def add_timer(user, minutes):
   # Check if the user already exists in the database, and initialize their data if they don't
   if user not in db:
-    db[user] = {"streak": 0, "last_gm": datetime.utcnow().date().isoformat(), "total": 0, "timers": []}
+    db[user] = {
+      "streak": 0,
+      "last_gm": datetime.utcnow().date().isoformat(),
+      "total": 0,
+      "timers": []
+    }
   # Add the new timer
   db[user]["timers"].append({
     "minutes": minutes,
@@ -66,10 +69,16 @@ async def on_message(message):
 
     # Initialize the user data if not present
     if user not in db:
-      db[user] = {"streak": 0, "last_gm": now.date().isoformat(), "total": 0, "timers": []}
+      db[user] = {
+        "streak": 0,
+        "last_gm": now.date().isoformat(),
+        "total": 0,
+        "timers": []
+      }
 
     # Check if users last GM!tm was the first of the day
-    if now.date() - datetime.fromisoformat(db[user]["last_gm"]).date() > timedelta(days=1):
+    if now.date() - datetime.fromisoformat(
+        db[user]["last_gm"]).date() > timedelta(days=1):
       db[user]["streak"] = 0
 
     # If the user last gm was not today, increment the streak and total count
@@ -86,20 +95,19 @@ async def on_message(message):
   # Handling bot mentions
   elif bot.user.mentioned_in(message):
     # Prepare the AI model's prompt
-    response = openai.ChatCompletion.create(
-      model="gpt-3.5-turbo",
-      messages=[{
-        "role":
-        "system",
-        "content":
-        system_prompt
-      }, {
-        "role": "user",
-        "content": message.content
-      }])
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+                                            messages=[{
+                                              "role": "system",
+                                              "content": system_prompt
+                                            }, {
+                                              "role":
+                                              "user",
+                                              "content":
+                                              message.content
+                                            }])
 
     # Get the last message from the assistant
-    assistant_message = response['choices'][0]['message']['content']
+    assistant_message = response.choices[0].message.content
 
     # Send the message back to the Discord channel
     await message.channel.send(assistant_message)
@@ -112,8 +120,12 @@ async def on_message(message):
 async def leaderboard(ctx):
 
   #get the top 5 users by streak and total "gm count"
-  gm_streaks = sorted([user for user in db.items() if 'streak' in user[1]], key=get_streak, reverse=True)[:5]
-  total_gms = sorted([user for user in db.items() if 'total' in user[1]], key=get_totalGM, reverse=True)[:5]
+  gm_streaks = sorted([user for user in db.items() if 'streak' in user[1]],
+                      key=get_streak,
+                      reverse=True)[:5]
+  total_gms = sorted([user for user in db.items() if 'total' in user[1]],
+                     key=get_totalGM,
+                     reverse=True)[:5]
 
   #format the data
   streaks_value = '\n'.join([
@@ -174,11 +186,14 @@ async def timer(ctx, arg):
     await asyncio.sleep(minutes * 60)
 
     #dm the user
-    await ctx.author.send(f'your {minutes} bricks are finished, did you reach your goal?')
+    await ctx.author.send(
+      f'your {minutes} bricks are finished, did you reach your goal?')
   else:
     #timer invalid
-    await ctx.send("invalid Timer soldier! Please set a timer between 1 and 180 minutes")
-    
+    await ctx.send(
+      "invalid Timer soldier! Please set a timer between 1 and 180 minutes")
+
+
 @bot.command()
 async def mybricks(ctx):
   # Check the user's timers
@@ -207,7 +222,7 @@ async def bricklist(ctx):
   leaderboard = sorted(
     [(k, sum(t["minutes"] for t in v["timers"] if t["time"] > week_ago))
      for k, v in db.items() if "timers" in v],
-    key=lambda x: -x[1])[:3]
+    key=lambda x: -x[1])[:5]
   leaderboard_message = "**Bricks This Week**\n" + '\n'.join([
     f"🥇 **{user[0]}** has built for **{user[1]}** minutes"
     for user in leaderboard
@@ -260,7 +275,7 @@ async def ourbricks(ctx, period: str = 'week'):
 
 @bot.command()
 async def brickAI(ctx, bricks: int):
-  response = openai.ChatCompletion.create(
+  response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[{
       "role":
@@ -275,10 +290,9 @@ async def brickAI(ctx, bricks: int):
     }])
 
   # Get the last message from the assistant
-  assistant_message = response['choices'][0]['message']['content']
+  assistant_message = response.choices[0].message.content
 
   await ctx.send(assistant_message)
-
 
 
 bot.remove_command('help')
