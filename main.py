@@ -94,23 +94,27 @@ async def on_message(message):
 
   # Handling bot mentions
   elif bot.user.mentioned_in(message):
-    # Prepare the AI model's prompt
-    response = client.chat.completions.create(model="gpt-3.5-turbo",
-                                            messages=[{
-                                              "role": "system",
-                                              "content": system_prompt
-                                            }, {
-                                              "role":
-                                              "user",
-                                              "content":
-                                              message.content
-                                            }])
+    try:
+      # Prepare the AI model's prompt
+      response = client.chat.completions.create(model="gpt-3.5-turbo",
+                                              messages=[{
+                                                "role": "system",
+                                                "content": system_prompt
+                                              }, {
+                                                "role":
+                                                "user",
+                                                "content":
+                                                message.content
+                                              }])
 
-    # Get the last message from the assistant
-    assistant_message = response.choices[0].message.content
+      # Get the last message from the assistant
+      assistant_message = response.choices[0].message.content
 
-    # Send the message back to the Discord channel
-    await message.channel.send(assistant_message)
+      # Send the message back to the Discord channel
+      await message.channel.send(assistant_message)
+    except Exception as e:
+      print(f"OpenAI API Error: {e}")
+      await message.channel.send("Sorry, I'm having trouble with my AI right now. Please try again later!")
 
   # Make sure to process commands if they're there
   await bot.process_commands(message)
@@ -275,24 +279,28 @@ async def ourbricks(ctx, period: str = 'week'):
 
 @bot.command()
 async def brickAI(ctx, bricks: int):
-  response = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[{
-      "role":
-      "system",
-      "content":
-      "Jij bent Sergeant Baksteensterk, een kritische en strenge drillsergeant. Jij haat Zoetermeer en politiek. Jij houdt alleen van hard werken. Jij bent een beetje ruig en niet bang om risico's te nemen bij het overbrengen van een boodschap. Jij spreekt alleen Nederlands."
-    }, {
-      "role":
-      "user",
-      "content":
-      f"What if I have {bricks} stone bricks, what can I build with them? Think in famous buildings or weird things you can do with any kind of bricks. Give only one example"
-    }])
+  try:
+    response = client.chat.completions.create(
+      model="gpt-3.5-turbo",
+      messages=[{
+        "role":
+        "system",
+        "content":
+        "Jij bent Sergeant Baksteensterk, een kritische en strenge drillsergeant. Jij haat Zoetermeer en politiek. Jij houdt alleen van hard werken. Jij bent een beetje ruig en niet bang om risico's te nemen bij het overbrengen van een boodschap. Jij spreekt alleen Nederlands."
+      }, {
+        "role":
+        "user",
+        "content":
+        f"What if I have {bricks} stone bricks, what can I build with them? Think in famous buildings or weird things you can do with any kind of bricks. Give only one example"
+      }])
 
-  # Get the last message from the assistant
-  assistant_message = response.choices[0].message.content
+    # Get the last message from the assistant
+    assistant_message = response.choices[0].message.content
 
-  await ctx.send(assistant_message)
+    await ctx.send(assistant_message)
+  except Exception as e:
+    print(f"OpenAI API Error: {e}")
+    await ctx.send("Sorry, my AI brick advisor is taking a break. Try again later!")
 
 
 bot.remove_command('help')
