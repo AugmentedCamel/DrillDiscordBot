@@ -96,7 +96,7 @@ async def on_message(message):
   elif bot.user.mentioned_in(message):
     try:
       # Prepare the AI model's prompt
-      response = client.chat.completions.create(model="gpt-3.5-turbo",
+      response = client.chat.completions.create(model="gpt-4-turbo",
                                               messages=[{
                                                 "role": "system",
                                                 "content": system_prompt
@@ -281,7 +281,7 @@ async def ourbricks(ctx, period: str = 'week'):
 async def brickAI(ctx, bricks: int):
   try:
     response = client.chat.completions.create(
-      model="gpt-3.5-turbo",
+      model="gpt-4-turbo",
       messages=[{
         "role":
         "system",
