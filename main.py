@@ -26,15 +26,15 @@ def add_timer(user, minutes):
   # Check if the user already exists in the database, and initialize their data if they don't
   if user not in db:
     db[user] = {
-      "streak": 0,
-      "last_gm": datetime.utcnow().date().isoformat(),
-      "total": 0,
-      "timers": []
+        "streak": 0,
+        "last_gm": datetime.utcnow().date().isoformat(),
+        "total": 0,
+        "timers": []
     }
   # Add the new timer
   db[user]["timers"].append({
-    "minutes": minutes,
-    "time": datetime.utcnow().isoformat()
+      "minutes": minutes,
+      "time": datetime.utcnow().isoformat()
   })
 
 
@@ -70,10 +70,10 @@ async def on_message(message):
     # Initialize the user data if not present
     if user not in db:
       db[user] = {
-        "streak": 0,
-        "last_gm": now.date().isoformat(),
-        "total": 0,
-        "timers": []
+          "streak": 0,
+          "last_gm": now.date().isoformat(),
+          "total": 0,
+          "timers": []
       }
 
     # Check if users last GM!tm was the first of the day
@@ -96,16 +96,18 @@ async def on_message(message):
   elif bot.user.mentioned_in(message):
     try:
       # Prepare the AI model's prompt
-      response = client.chat.completions.create(model="gpt-4-turbo",
-                                              messages=[{
-                                                "role": "system",
-                                                "content": system_prompt
-                                              }, {
-                                                "role":
-                                                "user",
-                                                "content":
-                                                message.content
-                                              }])
+      response = client.chat.completions.create(model="gpt-5",
+                                                messages=[{
+                                                    "role":
+                                                    "system",
+                                                    "content":
+                                                    system_prompt
+                                                }, {
+                                                    "role":
+                                                    "user",
+                                                    "content":
+                                                    message.content
+                                                }])
 
       # Get the last message from the assistant
       assistant_message = response.choices[0].message.content
@@ -114,7 +116,9 @@ async def on_message(message):
       await message.channel.send(assistant_message)
     except Exception as e:
       print(f"OpenAI API Error: {e}")
-      await message.channel.send("Sorry, I'm having trouble with my AI right now. Please try again later!")
+      await message.channel.send(
+          "Sorry, I'm having trouble with my AI right now. Please try again later!"
+      )
 
   # Make sure to process commands if they're there
   await bot.process_commands(message)
@@ -133,12 +137,12 @@ async def leaderboard(ctx):
 
   #format the data
   streaks_value = '\n'.join([
-    f"🔥 **{user[0]}** is on a **{user[1]['streak']}** gm streak"
-    for user in gm_streaks
+      f"🔥 **{user[0]}** is on a **{user[1]['streak']}** gm streak"
+      for user in gm_streaks
   ])
   totals_value = '\n'.join([
-    f"🥇 **{user[0]}** has said gm **{user[1]['total']}** times"
-    for user in total_gms
+      f"🥇 **{user[0]}** has said gm **{user[1]['total']}** times"
+      for user in total_gms
   ])
 
   # Format the overall message
@@ -163,9 +167,9 @@ async def set_gm_total(ctx, user: discord.Member, total: int):
   if str(user) not in db.keys():
     now = datetime.utcnow()
     db[str(user)] = {
-      "streak": 0,
-      "last_gm": now.date().isoformat(),
-      "total": 0
+        "streak": 0,
+        "last_gm": now.date().isoformat(),
+        "total": 0
     }
 
   # Set the user's total count
@@ -191,11 +195,11 @@ async def timer(ctx, arg):
 
     #dm the user
     await ctx.author.send(
-      f'your {minutes} bricks are finished, did you reach your goal?')
+        f'your {minutes} bricks are finished, did you reach your goal?')
   else:
     #timer invalid
     await ctx.send(
-      "invalid Timer soldier! Please set a timer between 1 and 180 minutes")
+        "invalid Timer soldier! Please set a timer between 1 and 180 minutes")
 
 
 @bot.command()
@@ -212,7 +216,7 @@ async def mybricks(ctx):
     last_month = sum(t["minutes"] for t in timers if t["time"] > month_ago)
     last_year = sum(t["minutes"] for t in timers if t["time"] > year_ago)
     await ctx.send(
-      f"This week: {last_week} minutes\nThis month: {last_month} minutes\nThis year: {last_year} minutes"
+        f"This week: {last_week} minutes\nThis month: {last_month} minutes\nThis year: {last_year} minutes"
     )
   else:
     await ctx.send("You have no timers.")
@@ -224,12 +228,12 @@ async def bricklist(ctx):
   # Create the leaderboard
   week_ago = (datetime.utcnow() - timedelta(weeks=1)).isoformat()
   leaderboard = sorted(
-    [(k, sum(t["minutes"] for t in v["timers"] if t["time"] > week_ago))
-     for k, v in db.items() if "timers" in v],
-    key=lambda x: -x[1])[:5]
+      [(k, sum(t["minutes"] for t in v["timers"] if t["time"] > week_ago))
+       for k, v in db.items() if "timers" in v],
+      key=lambda x: -x[1])[:5]
   leaderboard_message = "**Bricks This Week**\n" + '\n'.join([
-    f"🥇 **{user[0]}** has built for **{user[1]}** minutes"
-    for user in leaderboard
+      f"🥇 **{user[0]}** has built for **{user[1]}** minutes"
+      for user in leaderboard
   ])
   await ctx.send(leaderboard_message)
 
@@ -269,30 +273,30 @@ async def ourbricks(ctx, period: str = 'week'):
 
   # Calculate the total time from all users
   total_time = sum(
-    sum(t["minutes"] for t in user_data["timers"] if t["time"] > time_cutoff)
-    for user_data in db.values() if "timers" in user_data)
+      sum(t["minutes"] for t in user_data["timers"] if t["time"] > time_cutoff)
+      for user_data in db.values() if "timers" in user_data)
 
   # Send the message
   await ctx.send(
-    f"Total time in the last {period}: {total_time} bricks have been pushed")
+      f"Total time in the last {period}: {total_time} bricks have been pushed")
 
 
 @bot.command()
 async def brickAI(ctx, bricks: int):
   try:
     response = client.chat.completions.create(
-      model="gpt-4-turbo",
-      messages=[{
-        "role":
-        "system",
-        "content":
-        "Jij bent Sergeant Baksteensterk, een kritische en strenge drillsergeant. Jij haat Zoetermeer en politiek. Jij houdt alleen van hard werken. Jij bent een beetje ruig en niet bang om risico's te nemen bij het overbrengen van een boodschap. Jij spreekt alleen Nederlands."
-      }, {
-        "role":
-        "user",
-        "content":
-        f"What if I have {bricks} stone bricks, what can I build with them? Think in famous buildings or weird things you can do with any kind of bricks. Give only one example"
-      }])
+        model="gpt-5",
+        messages=[{
+            "role":
+            "system",
+            "content":
+            "Jij bent Sergeant Baksteensterk, een kritische en strenge drillsergeant. Jij haat Zoetermeer en politiek. Jij houdt alleen van hard werken. Jij bent een beetje ruig en niet bang om risico's te nemen bij het overbrengen van een boodschap. Jij spreekt alleen Nederlands."
+        }, {
+            "role":
+            "user",
+            "content":
+            f"What if I have {bricks} stone bricks, what can I build with them? Think in famous buildings or weird things you can do with any kind of bricks. Give only one example"
+        }])
 
     # Get the last message from the assistant
     assistant_message = response.choices[0].message.content
@@ -300,7 +304,8 @@ async def brickAI(ctx, bricks: int):
     await ctx.send(assistant_message)
   except Exception as e:
     print(f"OpenAI API Error: {e}")
-    await ctx.send("Sorry, my AI brick advisor is taking a break. Try again later!")
+    await ctx.send(
+        "Sorry, my AI brick advisor is taking a break. Try again later!")
 
 
 bot.remove_command('help')
@@ -309,48 +314,48 @@ bot.remove_command('help')
 @bot.command()
 async def help(ctx):
   embed = discord.Embed(
-    title="Bot Commands",
-    description="These are the available commands for my bot",
-    color=discord.Color.blue())
+      title="Bot Commands",
+      description="These are the available commands for my bot",
+      color=discord.Color.blue())
 
   embed.add_field(
-    name="!leaderboard",
-    value="Lists the top 5 users by 'good morning' streaks and total counts.",
-    inline=False)
+      name="!leaderboard",
+      value="Lists the top 5 users by 'good morning' streaks and total counts.",
+      inline=False)
   embed.add_field(
-    name="!timer <minutes>",
-    value=
-    "Adds a timer for the user for the specified number of minutes (e.g. !timer 30).",
-    inline=False)
+      name="!timer <minutes>",
+      value=
+      "Adds a timer for the user for the specified number of minutes (e.g. !timer 30).",
+      inline=False)
   embed.add_field(
-    name="!mybricks",
-    value=
-    "Shows your total time spent building bricks for the week, month, and year.",
-    inline=False)
+      name="!mybricks",
+      value=
+      "Shows your total time spent building bricks for the week, month, and year.",
+      inline=False)
   embed.add_field(
-    name="!bricklist",
-    value=
-    "Shows the top 3 users in terms of time spent building bricks in the last week.",
-    inline=False)
+      name="!bricklist",
+      value=
+      "Shows the top 3 users in terms of time spent building bricks in the last week.",
+      inline=False)
   embed.add_field(
-    name="!ourbricks <period>",
-    value=
-    "Shows the total time spent by all users building bricks in the last day, week, or year (e.g. !ourbricks week).",
-    inline=False)
+      name="!ourbricks <period>",
+      value=
+      "Shows the total time spent by all users building bricks in the last day, week, or year (e.g. !ourbricks week).",
+      inline=False)
   embed.add_field(
-    name="!brickAI <bricks>",
-    value=
-    "Sends a message generated by the GPT-3.5-turbo model to the channel, considering the number of bricks specified (e.g. !brickAI 500).",
-    inline=False)
+      name="!brickAI <bricks>",
+      value=
+      "Sends a message generated by the GPT-3.5-turbo model to the channel, considering the number of bricks specified (e.g. !brickAI 500).",
+      inline=False)
 
   embed.add_field(name="Admin Commands",
                   value="These commands are only available to admins",
                   inline=False)
   embed.add_field(
-    name="!setgm <username> <count>",
-    value=
-    "Sets the total 'good morning' count for a user (e.g. !setgm @username 100).",
-    inline=False)
+      name="!setgm <username> <count>",
+      value=
+      "Sets the total 'good morning' count for a user (e.g. !setgm @username 100).",
+      inline=False)
   embed.add_field(name="!reset_timers",
                   value="Resets the timer data for each user in the database.",
                   inline=False)
