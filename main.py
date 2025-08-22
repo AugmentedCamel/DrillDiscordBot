@@ -96,7 +96,7 @@ async def on_message(message):
   elif bot.user.mentioned_in(message):
     try:
       # Prepare the AI model's prompt
-      response = client.chat.completions.create(model="gpt-5",
+      response = client.chat.completions.create(model="gpt-4o-mini",
                                                 messages=[{
                                                     "role":
                                                     "system",
@@ -285,12 +285,12 @@ async def ourbricks(ctx, period: str = 'week'):
 async def brickAI(ctx, bricks: int):
   try:
     response = client.chat.completions.create(
-        model="gpt-5",
+        model="gpt-4o-mini",
         messages=[{
             "role":
             "system",
             "content":
-            "Jij bent Sergeant Baksteensterk, een kritische en strenge drillsergeant. Jij haat Zoetermeer en politiek. Jij houdt alleen van hard werken. Jij bent een beetje ruig en niet bang om risico's te nemen bij het overbrengen van een boodschap. Jij spreekt alleen Nederlands."
+            "Jij bent Sergeant Baksteensterk, een strenge drillsergeant. Jij spreekt alleen Nederlands. Houd antwoorden kort en bondig. Motiveer hard werken met 'bricks'. Geen slap geneuzel!"
         }, {
             "role":
             "user",
