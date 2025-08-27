@@ -1,0 +1,5 @@
+﻿[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "python start.py"
